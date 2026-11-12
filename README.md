@@ -1,3 +1,11 @@
+# Multi-Agent Document Chat
+
+This project implements a sophisticated, 3-Agent Retrieval-Augmented Generation (RAG) system for chatting with documents. Instead of relying on a single AI model to handle everything, the workload is divided into specific roles (Retriever, Analyst, and Answer Agents) to provide accurate, well-reasoned answers backed by exact sources.
+
+
+## Project Structure
+
+```text
 Multi-Agent-Document-Chat/
 ├── app/
 │   ├── core/
@@ -42,7 +50,21 @@ Multi-Agent-Document-Chat/
 │   │   └── orchestrator.py      ← Main workflow coordinator
 │   ├── schemas/
 │   │   └── analysis.py          ← AnalysisResult, FinalAnswer, Citation
-│   └── main.py
-├── tests/
-├── docker-compose.yml
+│   └── main.py                  ← FastAPI entry point
+├── tests/                       ← Unit and End-to-End tests
+├── docker-compose.yml           ← Container orchestration (e.g., Vector DB, App)
 └── .gitignore
+```
+
+
+
+### Installation
+1. Clone the repository.
+2. Install dependencies: `pip install -r requirements.txt` (or via Poetry/Pipenv).
+3. Set up your environment variables (API keys, DB connection strings) in a `.env` file.
+
+### Running the App
+Run the main FastAPI server:
+```bash
+uvicorn app.main:app --reload
+```
