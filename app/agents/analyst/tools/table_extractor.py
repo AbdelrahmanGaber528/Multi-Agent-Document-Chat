@@ -4,7 +4,6 @@ from app.core.contract import EvidenceChunk, ExtractedTable
 
 MAX_CAPTION_LENGTH = 120
 
-# A separator row: cells made of dashes with optional alignment colons, e.g. | :--- | ---: |
 _SEPARATOR_RE = re.compile(r"^\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?$")
 _CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")  # split on | but not on an escaped \|
 _MD_EMPHASIS_RE = re.compile(r"\*{1,2}(.+?)\*{1,2}")
@@ -18,7 +17,6 @@ class TableExtractorError(ValueError):
     """Invalid input to the table tools (empty text, missing chunk_id, unknown column)."""
 
 
-# ---------------------------------------------------------------- parsing helpers
 def _clean_cell(cell: str) -> str:
     """Strip whitespace, Markdown bold/italic markers, <br> tags and escaped pipes."""
     cleaned = _BR_RE.sub(" ", cell.strip()).replace("\\|", "|")
@@ -65,7 +63,7 @@ def _build_table(
     return ExtractedTable(chunk_id=chunk_id, caption=caption, headers=headers, rows=rows)
 
 
-# ---------------------------------------------------------------- extraction
+
 def extract_tables(
     text: str,
     chunk_id: str,
@@ -157,7 +155,6 @@ def extract_from_chunks(chunks: list[EvidenceChunk]) -> list[ExtractedTable]:
     return tables
 
 
-# ---------------------------------------------------------------- numeric access
 def parse_number(cell: str) -> Optional[float]:
     """Convert a table cell to a float, or None if it is not a number.
 
