@@ -156,16 +156,7 @@ def extract_from_chunks(chunks: list[EvidenceChunk]) -> list[ExtractedTable]:
 
 
 def parse_number(cell: str) -> Optional[float]:
-    """Convert a table cell to a float, or None if it is not a number.
-
-    Understands "92.5%" (-> 92.5, the percent sign is dropped, not divided),
-    "1,234", "$1,200", "-$1,200", "0.85 ± 0.02" (-> 0.85), "(12.3)" (accounting
-    negative), "−3" (unicode minus), "95.2*" (footnote marker) and "1e-3".
-    Missing values ("N/A", "-", "") and anything that is not purely a number,
-    such as the model name "GPT-4", return None so labels are never read as numbers.
-    A comma used as a decimal separator ("0,85") also returns None, because
-    it cannot be told apart from a thousands separator.
-    """
+    """Convert a table cell to a float, or None if it is not a number."""
     if cell is None:
         return None
     s = cell.strip().replace("\u2212", "-")
@@ -176,7 +167,6 @@ def parse_number(cell: str) -> Optional[float]:
     s = s.strip("()")
     s = re.split(r"\u00b1|\+/-", s)[0].strip()
 
-    # --- REPLACE THE OLD s.lstrip(...) LINE WITH THESE 4 LINES ---
     sign = ""
     if s and s[0] in "+-":
         sign, s = s[0], s[1:].strip()
@@ -216,18 +206,7 @@ def get_column(
     column: str,
     numeric: bool = False,
 ) -> list[str] | list[Optional[float]]:
-    """Return one column of a table, matched by header name (case-insensitive).
 
-    Args:
-        table: A table from extract_tables.
-        column: Header text, e.g. "F1-score".
-        numeric: If True, convert every cell with parse_number (None where a cell
-            is missing or not numeric), ready for max/min/mean or the calculator.
-
-    Raises:
-        TableExtractorError: If the column does not exist. The message lists the
-            available columns so the caller can retry.
-    """
     names = _unique_headers(table.headers)
     lookup = {name.lower(): idx for idx, name in enumerate(names)}
     idx = lookup.get(column.strip().lower())
