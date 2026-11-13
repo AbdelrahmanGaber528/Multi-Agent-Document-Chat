@@ -1,4 +1,5 @@
-from typing import Literal, Optional,Union
+from typing import Any, Literal, Optional, Union
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -17,7 +18,7 @@ class EvidenceChunk(BaseModel):
     score: float = Field(default=0.0, description="Reranker relevance score (higher is better)")
 
 
-class EvidenceBundle(BaseModel): 
+class EvidenceBundle(BaseModel):
     """What the Retriever hands to the Analyst."""
 
     model_config = ConfigDict(extra="forbid")
@@ -34,10 +35,11 @@ class IngestResult(BaseModel):
 
     doc_id: str = Field(..., min_length=1)
     num_chunks: int = Field(..., ge=0)
-    
-    
 
-# Part of the Analyst's output which is passed to the Answer Agent and orchestrator
+
+# ── Analyst output models ──────────────────────────────────────────
+# These are passed to the Answer Agent and the orchestrator.
+
 
 class Finding(BaseModel):
     """One fact or conclusion backed by specific evidence chunks."""
@@ -65,8 +67,52 @@ class ExtractedTable(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     chunk_id: str
+    caption: Optional[str] = Field(default=None, description="Short title or heading above the table")
     headers: list[str] = Field(default_factory=list)
     rows: list[list[str]] = Field(default_factory=list)
+
+
+class MetricAnalysis(BaseModel):
+    """Output of a data-analysis tool: ranking, trend, or correlation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    analysis_type: Literal["ranking", "trend", "correlation"] = Field(
+        ..., description="Kind of analysis performed"
+    )
+    metric: str = Field(..., min_length=1, description="Name of the metric analysed")
+    summary: str = Field(..., description="One-paragraph human-readable summary")
+    chunk_ids: list[str] = Field(
+        default_factory=list, description="Evidence chunks the analysis drew on"
+    )
+    details: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Structured results (rankings, statistics, trend data, etc.)",
+    )
+
+
+
+
+class DocumentEntry(BaseModel):
+    """One document's data in a multi-document comparison."""
+
+    model_config = ConfigDict(extra="forbid", coerce_numbers_to_str=True)
+
+    doc_id: str = Field(..., min_length=1, description="Source document ID from EvidenceChunk")
+    doc_name: str = Field(default="", description="Display file name; resolved from chunks")
+    attributes: dict[str, Optional[str]] = Field(default_factory=dict)
+    chunk_ids: list[str] = Field(..., min_length=1, description="Chunk IDs supporting this document")
+
+
+class MissingTarget(BaseModel):
+    """An information gap identified during document comparison."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    doc_id: str = Field(..., min_length=1)
+    doc_name: str = Field(..., min_length=1)
+    criterion: str = Field(..., min_length=1)
+    query: str = Field(..., min_length=1)
 
 
 class Comparison(BaseModel):
@@ -74,11 +120,15 @@ class Comparison(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    topic: str
-    doc_ids: list[str] = Field(default_factory=list)
+    topic: str = Field(..., min_length=1)
+    criteria: list[str] = Field(default_factory=list)
+    entries: list[DocumentEntry] = Field(default_factory=list)
     similarities: list[str] = Field(default_factory=list)
     differences: list[str] = Field(default_factory=list)
+    missing_by_doc: dict[str, list[str]] = Field(default_factory=dict)
+    summary: str = ""
     chunk_ids: list[str] = Field(default_factory=list)
+
 
 
 class AnalysisResult(BaseModel):
@@ -91,6 +141,10 @@ class AnalysisResult(BaseModel):
     calculations: list[Calculation] = Field(default_factory=list)
     tables: list[ExtractedTable] = Field(default_factory=list)
     comparisons: list[Comparison] = Field(default_factory=list)
+    metric_analyses: list[MetricAnalysis] = Field(
+        default_factory=list,
+        description="Rankings, trends, and correlations produced by data-analysis tools",
+    )
     missing_info: list[str] = Field(
         default_factory=list,
         description="Gaps that trigger the feedback loop back to the Retriever",
@@ -105,7 +159,7 @@ class AnalysisResult(BaseModel):
     def used_chunk_ids(self) -> list[str]:
         """Every chunk_id referenced anywhere in the analysis, de-duplicated, in order."""
         seen: dict[str, None] = {}
-        for group in (self.findings, self.calculations, self.comparisons):
+        for group in (self.findings, self.calculations, self.comparisons, self.metric_analyses):
             for item in group:
                 for cid in item.chunk_ids:
                     seen.setdefault(cid, None)
