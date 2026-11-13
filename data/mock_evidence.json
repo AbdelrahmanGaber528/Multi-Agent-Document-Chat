@@ -1,0 +1,41 @@
+{
+  "query": "Compare the accuracy, latency, and training cost of ResNet-50, ViT-B/16, and ConvNeXt-T across the retrieved papers, analyze the accuracy trend from 2022 to 2025, and check if parameter count correlates with accuracy.",
+  "chunks": [
+    {
+      "chunk_id": "c1",
+      "doc_id": "doc_1",
+      "doc_name": "vision_benchmarks_2025.pdf",
+      "chunk_type": "table",
+      "page": 4,
+      "score": 0.94,
+      "text": "Table 1: ImageNet-1K Validation Benchmarks\n| Model | Params (M) | Top-1 Accuracy | Latency (ms) |\n| :--- | :---: | :---: | :---: |\n| ResNet-50 | 25.6 | 76.1% | 12.4 |\n| ViT-B/16 | 86.6 | 81.8% | 29.5 |\n| ConvNeXt-T | 28.6 | 82.1% | 14.2 |\n| Swin-T | 28.3 | 81.3% | 18.7 |"
+    },
+    {
+      "chunk_id": "c2",
+      "doc_id": "doc_1",
+      "doc_name": "vision_benchmarks_2025.pdf",
+      "chunk_type": "text",
+      "page": 5,
+      "score": 0.89,
+      "text": "In vision_benchmarks_2025.pdf, all architectures were trained for 300 epochs on ImageNet-1K using the AdamW optimizer and cosine learning-rate decay. Total cloud GPU training cost was $1,200 for ResNet-50, $2,850 for ViT-B/16, and $1,950 for ConvNeXt-T."
+    },
+    {
+      "chunk_id": "c3",
+      "doc_id": "doc_2",
+      "doc_name": "efficient_convnets_2026.pdf",
+      "chunk_type": "text",
+      "page": 2,
+      "score": 0.91,
+      "text": "Our evaluation in efficient_convnets_2026.pdf reproduces ConvNeXt-T using 7x7 depthwise convolutions and inverted bottleneck blocks, confirming 82.1% Top-1 accuracy and 14.2 ms single-image inference latency on an A100 GPU. Unlike prior studies, GPU training cost was not disclosed in our experimental logs."
+    },
+    {
+      "chunk_id": "c4",
+      "doc_id": "doc_2",
+      "doc_name": "efficient_convnets_2026.pdf",
+      "chunk_type": "table",
+      "page": 6,
+      "score": 0.86,
+      "text": "Table 2: Annual Best ConvNet Top-1 Accuracy Progression\n| Year | Top-1 Accuracy |\n| :---: | :---: |\n| 2022 | 78.4% |\n| 2023 | 80.1% |\n| 2024 | 81.5% |\n| 2025 | 82.9% |"
+    }
+  ]
+}

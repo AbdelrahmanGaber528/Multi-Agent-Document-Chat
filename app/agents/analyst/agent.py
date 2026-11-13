@@ -194,7 +194,7 @@ def run_analyst(
     attempted_queries: Optional[list[str]] = None,
     max_tool_turns: int = MAX_TOOL_TURNS,
 ) -> AnalysisResult:
-    """Run the Analyst Agent on an EvidenceBundle and return a validated AnalysisResult."""
+
     prior_gaps = _dedupe(attempted_queries or [])
     prior_gaps_lower = {g.lower() for g in prior_gaps}
 
@@ -204,13 +204,13 @@ def run_analyst(
 
     valid_chunk_ids = {c.chunk_id for c in bundle.chunks}
 
-    # 1. Pre-extract all table chunks deterministically
+    # Pre-extract all table chunks 
     tables: list[ExtractedTable] = extract_from_chunks(bundle.chunks)
     calculations: list[Calculation] = []
     metric_analyses: list[MetricAnalysis] = []
     comparisons: list[Comparison] = []
 
-    # 2. Bind tools using live chunk getter + table lookup by chunk_id
+    # Bind tools using live chunk getter + table lookup by chunk_id
     tools = _build_tools(lambda: bundle.chunks, tables)
     tool_map = {t.name: t for t in tools}
     llm_with_tools = llm.bind_tools(tools)
@@ -220,7 +220,7 @@ def run_analyst(
         HumanMessage(content=_format_evidence_prompt(bundle, tables, prior_gaps)),
     ]
 
-    # 3. Tool-calling loop
+    # Tool-calling loop
     for _ in range(max_tool_turns):
         ai_msg = llm_with_tools.invoke(messages)
         messages.append(ai_msg)
@@ -252,7 +252,7 @@ def run_analyst(
                 elif isinstance(result, Comparison):
                     comparisons.append(result)
 
-                messages.append(ToolMessage(tool_call_id=call_id, content=_to_json(result)))
+                messages.append(ToolMessage(tool_call_id=call_id, content=_to_json(result))) # We take all the tool outputs and append them to the messages for the llm to see in the next turn and decide its next step
             except (ValueError, ValidationError, KeyError, TypeError) as exc:
                 messages.append(
                     ToolMessage(
@@ -261,8 +261,8 @@ def run_analyst(
                     )
                 )
 
-    # 4. Final structured synthesis (guarded against malformed LLM output)
-    synthesizer = llm.with_structured_output(_AnalystSynthesis)
+    # Final structured synthesis (guarded against malformed LLM output)
+    synthesizer = llm.with_structured_output(_AnalystSynthesis) # This function makes the llm output data in the given format to be compatible with the required output of the analyst agent
     messages.append(
         HumanMessage(
             content=(
@@ -278,7 +278,7 @@ def run_analyst(
         logger.warning("Analyst synthesis failed; falling back to tool outputs only: %s", exc)
         synthesis = _AnalystSynthesis()
 
-    # 5. Strip ungrounded chunk_ids from LLM-authored findings and log drops
+    # Remove any findings that reference chunk_ids not present in the retrieved evidence
     grounded_findings: list[Finding] = []
     for f in synthesis.findings:
         verified_cids = _dedupe([cid for cid in f.chunk_ids if cid in valid_chunk_ids])
@@ -290,7 +290,7 @@ def run_analyst(
         else:
             logger.warning("Dropped finding with no valid citations: %s", f.statement)
 
-    # 6. Merge comparison gaps + LLM gaps and filter out already-attempted queries
+    # Merge comparison gaps + LLM gaps and filter out already-attempted queries
     comparison_gaps = [gap for comp in comparisons for gap in missing_to_info(comp)]
     all_missing = [
         gap
