@@ -1,4 +1,4 @@
-from typing import Literal, Optional,Union
+from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -65,6 +65,7 @@ class ExtractedTable(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     chunk_id: str
+    caption: Optional[str] = Field(default=None, description="Short title or heading above the table")
     headers: list[str] = Field(default_factory=list)
     rows: list[list[str]] = Field(default_factory=list)
 
@@ -81,6 +82,25 @@ class Comparison(BaseModel):
     chunk_ids: list[str] = Field(default_factory=list)
 
 
+class MetricAnalysis(BaseModel):
+    """Output of a data-analysis tool: ranking, trend, or correlation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    analysis_type: Literal["ranking", "trend", "correlation"] = Field(
+        ..., description="Kind of analysis performed"
+    )
+    metric: str = Field(..., min_length=1, description="Name of the metric analysed")
+    summary: str = Field(..., description="One-paragraph human-readable summary")
+    chunk_ids: list[str] = Field(
+        default_factory=list, description="Evidence chunks the analysis drew on"
+    )
+    details: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Structured results (rankings, statistics, trend data, etc.)",
+    )
+
+
 class AnalysisResult(BaseModel):
     """Output of the Analyst Agent."""
 
@@ -91,6 +111,10 @@ class AnalysisResult(BaseModel):
     calculations: list[Calculation] = Field(default_factory=list)
     tables: list[ExtractedTable] = Field(default_factory=list)
     comparisons: list[Comparison] = Field(default_factory=list)
+    metric_analyses: list[MetricAnalysis] = Field(
+        default_factory=list,
+        description="Rankings, trends, and correlations produced by data-analysis tools",
+    )
     missing_info: list[str] = Field(
         default_factory=list,
         description="Gaps that trigger the feedback loop back to the Retriever",
@@ -105,7 +129,7 @@ class AnalysisResult(BaseModel):
     def used_chunk_ids(self) -> list[str]:
         """Every chunk_id referenced anywhere in the analysis, de-duplicated, in order."""
         seen: dict[str, None] = {}
-        for group in (self.findings, self.calculations, self.comparisons):
+        for group in (self.findings, self.calculations, self.comparisons, self.metric_analyses):
             for item in group:
                 for cid in item.chunk_ids:
                     seen.setdefault(cid, None)
