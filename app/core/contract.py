@@ -1,4 +1,5 @@
 from typing import Any, Literal, Optional, Union
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -17,7 +18,7 @@ class EvidenceChunk(BaseModel):
     score: float = Field(default=0.0, description="Reranker relevance score (higher is better)")
 
 
-class EvidenceBundle(BaseModel): 
+class EvidenceBundle(BaseModel):
     """What the Retriever hands to the Analyst."""
 
     model_config = ConfigDict(extra="forbid")
@@ -34,10 +35,11 @@ class IngestResult(BaseModel):
 
     doc_id: str = Field(..., min_length=1)
     num_chunks: int = Field(..., ge=0)
-    
-    
 
-# Part of the Analyst's output which is passed to the Answer Agent and orchestrator
+
+# ── Analyst output models ──────────────────────────────────────────
+# These are passed to the Answer Agent and the orchestrator.
+
 
 class Finding(BaseModel):
     """One fact or conclusion backed by specific evidence chunks."""
@@ -70,18 +72,6 @@ class ExtractedTable(BaseModel):
     rows: list[list[str]] = Field(default_factory=list)
 
 
-class Comparison(BaseModel):
-    """Result of comparing information across documents."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    topic: str
-    doc_ids: list[str] = Field(default_factory=list)
-    similarities: list[str] = Field(default_factory=list)
-    differences: list[str] = Field(default_factory=list)
-    chunk_ids: list[str] = Field(default_factory=list)
-
-
 class MetricAnalysis(BaseModel):
     """Output of a data-analysis tool: ranking, trend, or correlation."""
 
@@ -99,6 +89,46 @@ class MetricAnalysis(BaseModel):
         default_factory=dict,
         description="Structured results (rankings, statistics, trend data, etc.)",
     )
+
+
+
+
+class DocumentEntry(BaseModel):
+    """One document's data in a multi-document comparison."""
+
+    model_config = ConfigDict(extra="forbid", coerce_numbers_to_str=True)
+
+    doc_id: str = Field(..., min_length=1, description="Source document ID from EvidenceChunk")
+    doc_name: str = Field(default="", description="Display file name; resolved from chunks")
+    attributes: dict[str, Optional[str]] = Field(default_factory=dict)
+    chunk_ids: list[str] = Field(..., min_length=1, description="Chunk IDs supporting this document")
+
+
+class MissingTarget(BaseModel):
+    """An information gap identified during document comparison."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    doc_id: str = Field(..., min_length=1)
+    doc_name: str = Field(..., min_length=1)
+    criterion: str = Field(..., min_length=1)
+    query: str = Field(..., min_length=1)
+
+
+class Comparison(BaseModel):
+    """Result of comparing information across documents."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    topic: str = Field(..., min_length=1)
+    criteria: list[str] = Field(default_factory=list)
+    entries: list[DocumentEntry] = Field(default_factory=list)
+    similarities: list[str] = Field(default_factory=list)
+    differences: list[str] = Field(default_factory=list)
+    missing_by_doc: dict[str, list[str]] = Field(default_factory=dict)
+    summary: str = ""
+    chunk_ids: list[str] = Field(default_factory=list)
+
 
 
 class AnalysisResult(BaseModel):
