@@ -8,10 +8,7 @@ from app.agents.analyst.tools.table_extractor import (
     parse_number,
 )
 from app.core.contract import ExtractedTable, MetricAnalysis
-
-
-class DataAnalysisError(ValueError):
-    """Input data is empty, mismatched, too small, or contains no valid numeric values."""
+from app.core.errors import DataAnalysisError
 
 
 def _r(value: float) -> float:
