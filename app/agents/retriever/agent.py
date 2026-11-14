@@ -55,9 +55,16 @@ class RetrieverAgent:
                     chunk_id = row.get("chunk_id") or metadata.get("chunk_id")
                     if not chunk_id:
                         continue
+                    
                     old = candidates.get(str(chunk_id), {})
-                    # Preserve a single candidate per chunk; semantic metadata is preferred.
-                    candidates[str(chunk_id)] = {**old, **row, "metadata": metadata}
+                    old_metadata = old.get("metadata") or {}
+
+                    candidates[str(chunk_id)] = {
+                        **old,
+                        **row,
+                        "chunk_id": str(chunk_id),
+                        "metadata": {**old_metadata, **metadata},
+                    }
 
         candidate_list = list(candidates.values())
         
