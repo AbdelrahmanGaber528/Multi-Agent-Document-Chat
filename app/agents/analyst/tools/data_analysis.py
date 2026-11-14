@@ -8,6 +8,7 @@ from app.agents.analyst.tools.table_extractor import (
     parse_number,
 )
 from app.core.contract import ExtractedTable, MetricAnalysis
+from app.core.errors import DataAnalysisError
 
 
 def _r(value: float) -> float:

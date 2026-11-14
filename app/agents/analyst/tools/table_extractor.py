@@ -1,6 +1,7 @@
 import re
 from typing import Optional
 from app.core.contract import EvidenceChunk, ExtractedTable
+from app.core.errors import TableExtractorError
 
 MAX_CAPTION_LENGTH = 120
 

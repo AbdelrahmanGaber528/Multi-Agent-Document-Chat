@@ -4,6 +4,7 @@ from typing import Any, Callable, Optional
 
 from app.agents.analyst.tools.table_extractor import parse_number
 from app.core.contract import Comparison, DocumentEntry, EvidenceChunk, MissingTarget
+from app.core.errors import DocumentComparisonError
 
 _MISSING_RE = re.compile(
     r"^(n/?a|none|null|unknown"
@@ -12,6 +13,7 @@ _MISSING_RE = re.compile(
     r"(?:\s*\([^)]*\))?"
     r"(?:\s+(in|by|for|from|on)\b.*)?$"
 )
+
 
 def group_chunks_by_document(chunks: list[EvidenceChunk]) -> dict[str, list[EvidenceChunk]]:
     """Group retrieved chunks by doc_id while preserving retrieval order."""
