@@ -115,3 +115,5 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Cached singleton."""
     return Settings()
+
+MAX_ROUNDS = get_settings().max_rounds
