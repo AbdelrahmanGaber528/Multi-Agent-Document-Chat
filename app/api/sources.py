@@ -1,123 +1,108 @@
 import logging
-
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
-
-from app.core.contract import (
-    IngestResult,
-    IngestUrlRequest,
-    IngestWikipediaRequest,
-    SourceListResponse,
-)
-from app.core.config import settings
-from app.core.errors import (
-    FileTooLarge,
-    IngestionFailed,
-    InvalidRequest,
-    InvalidURL,
-    SourceNotFound,
-)
-from app.ingestion.pipeline import ingest_file, ingest_url, ingest_wikipedia
-from app.knowledge.vector_store import delete_source, list_sources, source_exists
+from app.core.config import get_settings
+from app.pipeline.vector_db import VectorDatabase
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/sources", tags=["sources"])
+router = APIRouter(prefix="/resources", tags=["resources"])
+
+settings = get_settings()
 
 
-def _checked(result: IngestResult) -> IngestResult:
-    """Convert failed ingestion results into HTTP errors."""
+def get_vector_db():
+    return VectorDatabase(
+        embedding_model=settings.embedding_model,
+    )
 
-    if result.status == "failed":
-        raise IngestionFailed(result.message or "Ingestion failed")
+
+@router.post("/upload")
+async def upload_resource(file: UploadFile = File(...)):
+    
+    if not file.filename:
+        raise HTTPException(400, "Filename is required.")
+
+    extension = "." + file.filename.rsplit(".", 1)[-1].lower()
+
+    if extension not in settings.allowed_extensions:
+        raise HTTPException(415, "Unsupported file type.")
+
+    content = await file.read()
+
+    if not content:
+        raise HTTPException(400, "Uploaded file is empty.")
+
+    if len(content) > settings.max_upload_bytes:
+        raise HTTPException(413, "File is too large.")
+
+    from app.pipeline.ingestion import ingest_file
+
+    result = await run_in_threadpool(
+        ingest_file,
+        file.filename,
+        content,
+    )
 
     return result
 
 
-@router.post("/files", response_model=IngestResult)
-async def upload_file(file: UploadFile = File(...)) -> IngestResult:
+@router.get("")
+def list_resources():
+    db = get_vector_db()
 
-    if not file.filename:
-        raise InvalidRequest("Filename is missing")
-
-    filename = file.filename
-
-    data = await file.read()
-
-    if len(data) > settings.max_upload_bytes:
-        raise FileTooLarge(
-            f"File exceeds the {settings.max_upload_mb} MB limit"
+    try:
+        stored = db.vector_store.get(
+            include=["metadatas"]
         )
 
-    if not data:
-        raise InvalidRequest("Uploaded file is empty")
+        resources = {}
 
-    log.info("Upload received: %s (%d bytes)", filename, len(data))
+        for metadata in stored.get("metadatas") or []:
+            metadata = metadata or {}
+            doc_id = metadata.get("doc_id")
 
-    result = await run_in_threadpool(
-        ingest_file,
-        filename,
-        data,
-    )
+            if not doc_id:
+                continue
 
-    return _checked(result)
+            if doc_id not in resources:
+                resources[doc_id] = {
+                    "doc_id": doc_id,
+                    "filename": metadata.get("filename"),
+                    "chunks": 0,
+                }
+
+            resources[doc_id]["chunks"] += 1
+
+        return {
+            "resources": list(resources.values()),
+            "total": len(resources),
+        }
+
+    except Exception as exc:
+        log.exception("Failed to list resources")
+        raise HTTPException(
+            500,
+            "Failed to retrieve resources.",
+        ) from exc
 
 
+@router.delete("/{resource_id}")
+def delete_resource(resource_id: str):
+    
+    db = get_vector_db()
 
-@router.post("/url", response_model=IngestResult)
-def add_url(body: IngestUrlRequest) -> IngestResult:
+    chunks = db.get_document_chunks(resource_id)
 
-    url = body.url.strip()
-
-    if not url:
-        raise InvalidURL("URL is empty")
-
-    log.info("URL ingestion requested")
-
-    return _checked(ingest_url(url))
-
-
-
-@router.post("/wikipedia", response_model=IngestResult)
-def add_wikipedia(body: IngestWikipediaRequest) -> IngestResult:
-
-    page = body.page.strip()
-
-    if not page:
-        raise InvalidRequest(
-            "Wikipedia page title or URL is empty"
+    if not chunks:
+        raise HTTPException(
+            404,
+            "Resource not found.",
         )
 
-    log.info(
-        "Wikipedia ingestion requested: %s (%s)",
-        page,
-        body.lang,
-    )
+    db.delete_document(resource_id)
 
-    return _checked(ingest_wikipedia(page, body.lang))
-
-
-
-@router.get("", response_model=SourceListResponse)
-def get_sources() -> SourceListResponse:
-
-    return SourceListResponse(
-        sources=list_sources()
-    )
-
-
-
-@router.delete("/{source_id}", response_model=SourceListResponse)
-def remove_source(source_id: str) -> SourceListResponse:
-
-    if not source_exists(source_id):
-        raise SourceNotFound(f"No source with id {source_id}")
-
-    deleted = delete_source(source_id)
-
-    if not deleted:
-        raise IngestionFailed("Failed to delete source")
-
-    return SourceListResponse(
-        sources=list_sources()
-    )
+    return {
+        "message": "Resource deleted successfully.",
+        "resource_id": resource_id,
+    }
