@@ -12,7 +12,7 @@ settings = get_settings()
 
 DEFAULT_PERSIST_DIRECTORY = settings.vector_db_dir
 DEFAULT_COLLECTION_NAME = settings.vector_collection
-
+EMBEDDING_MODEL = settings.embedding_model
 
 def _stable_chunk_id(document: Document) -> str:
     """
@@ -71,7 +71,7 @@ class VectorDatabase:
         self,
         persist_directory: str = DEFAULT_PERSIST_DIRECTORY,
         collection_name: str = DEFAULT_COLLECTION_NAME,
-        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        embedding_model: str = EMBEDDING_MODEL,
     ):
 
         self.persist_directory = Path(persist_directory)
