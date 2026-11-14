@@ -20,6 +20,7 @@ settings = get_settings()
 
 def ingest_file(filename: str, file_bytes: bytes) -> IngestResult:
     """Ingest uploaded bytes through loader -> parser -> cleaner -> chunker -> Chroma."""
+    
     if not filename or not filename.strip():
         raise IngestionError("Filename cannot be empty.")
     if not file_bytes:
@@ -49,6 +50,7 @@ def ingest_file(filename: str, file_bytes: bytes) -> IngestResult:
         documents = load_document(temp_path, doc_id=doc_id)
         documents = parse_documents(documents)
         documents = clean_documents(documents)
+        
         if not documents:
             raise EmptyDocumentError("No content remaining after cleaning.")
 
@@ -61,6 +63,7 @@ def ingest_file(filename: str, file_bytes: bytes) -> IngestResult:
             })
 
         chunks = chunk_documents(documents)
+        
         if not chunks:
             raise EmptyDocumentError("Chunking produced no chunks.")
 
@@ -77,6 +80,7 @@ def ingest_file(filename: str, file_bytes: bytes) -> IngestResult:
         inserted_ids = db.add_documents(chunks)
         log.info("Ingestion completed: %s, chunks=%d", safe_name, len(inserted_ids))
         return IngestResult(doc_id=doc_id, num_chunks=len(inserted_ids))
+    
     except (EmptyDocumentError, UnsupportedFileError, FileTooLargeError, IngestionError, VectorStoreError):
         raise
     except Exception as exc:
