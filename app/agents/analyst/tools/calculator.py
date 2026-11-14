@@ -2,6 +2,8 @@ import math
 from typing import Optional
 from simpleeval import InvalidExpression, simple_eval
 from app.core.contract import Calculation
+from app.core.errors import CalculatorError
+
 
 MAX_EXPRESSION_LENGTH = 200
 
@@ -13,10 +15,6 @@ _SAFE_FUNCTIONS = {
     "max": max,
     "sqrt": math.sqrt,
 }
-
-
-class CalculatorError(ValueError):
-    """The expression is invalid, unsafe, or has no finite numeric result."""
 
 
 def calculate(

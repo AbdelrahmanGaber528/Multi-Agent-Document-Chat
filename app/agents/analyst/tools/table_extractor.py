@@ -1,6 +1,7 @@
 import re
 from typing import Optional
 from app.core.contract import EvidenceChunk, ExtractedTable
+from app.core.errors import TableExtractorError
 
 MAX_CAPTION_LENGTH = 120
 
@@ -12,9 +13,6 @@ _THOUSANDS_RE = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
 _NUMBER_RE = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
 _MISSING = {"", "-", "\u2013", "\u2014", "n/a", "na", "nan", "none", "null", "?"}
 
-
-class TableExtractorError(ValueError):
-    """Invalid input to the table tools (empty text, missing chunk_id, unknown column)."""
 
 
 def _clean_cell(cell: str) -> str:
