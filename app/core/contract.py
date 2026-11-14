@@ -163,8 +163,10 @@ class AnalysisResult(BaseModel):
             for item in group:
                 for cid in item.chunk_ids:
                     seen.setdefault(cid, None)
-        for table in self.tables:
-            seen.setdefault(table.chunk_id, None)
+                if isinstance(item, Comparison):
+                    for entry in item.entries:
+                        for cid in entry.chunk_ids:
+                            seen.setdefault(cid, None)
         return list(seen)
 
 
