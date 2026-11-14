@@ -125,3 +125,41 @@ class CalculatorError(AnalysisError):
     """The expression is invalid, unsafe, or has no finite numeric result."""
 
     code = "calculator_error"
+    
+    
+    
+    
+# ── Answer (agents/answer/) ───────────────────────────────────────────
+class AnswerError(AppError):
+    """Parent of every error raised while writing the final answer."""
+ 
+    status_code = 500
+    code = "answer_error"
+ 
+ 
+class AnswerGenerationError(AnswerError):
+    """The LLM call failed or returned an empty / unusable answer."""
+ 
+    status_code = 502
+    code = "answer_generation_error"
+ 
+ 
+class CitationError(AnswerError, ValueError):
+    """A citation refers to a chunk_id that is not in the evidence, or lacks doc/page info."""
+ 
+    status_code = 422
+    code = "citation_error"
+ 
+ 
+class SourceFormatterError(AnswerError, ValueError):
+    """The list of evidence sources could not be built (empty or malformed input)."""
+ 
+    status_code = 422
+    code = "source_formatter_error"
+ 
+ 
+class ResponseFormatterError(AnswerError, ValueError):
+    """The answer could not be organized into text or tables (bad table shape, empty content)."""
+ 
+    status_code = 422
+    code = "response_formatter_error"
