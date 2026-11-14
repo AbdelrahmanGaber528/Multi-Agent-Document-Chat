@@ -13,11 +13,6 @@ _MISSING_RE = re.compile(
     r"(?:\s+(in|by|for|from|on)\b.*)?$"
 )
 
-
-class DocumentComparisonError(ValueError):
-    """Invalid, ungrounded, or insufficient inputs for a multi-document comparison."""
-
-
 def group_chunks_by_document(chunks: list[EvidenceChunk]) -> dict[str, list[EvidenceChunk]]:
     """Group retrieved chunks by doc_id while preserving retrieval order."""
     grouped: dict[str, list[EvidenceChunk]] = defaultdict(list)

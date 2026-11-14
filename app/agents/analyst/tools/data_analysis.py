@@ -10,10 +10,6 @@ from app.agents.analyst.tools.table_extractor import (
 from app.core.contract import ExtractedTable, MetricAnalysis
 
 
-class DataAnalysisError(ValueError):
-    """Input data is empty, mismatched, too small, or contains no valid numeric values."""
-
-
 def _r(value: float) -> float:
     return round(value, 6)
 

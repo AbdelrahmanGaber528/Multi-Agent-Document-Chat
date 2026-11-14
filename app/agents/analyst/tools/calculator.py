@@ -15,10 +15,6 @@ _SAFE_FUNCTIONS = {
 }
 
 
-class CalculatorError(ValueError):
-    """The expression is invalid, unsafe, or has no finite numeric result."""
-
-
 def calculate(
     expression: str,
     description: str,

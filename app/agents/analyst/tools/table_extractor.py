@@ -13,9 +13,6 @@ _NUMBER_RE = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
 _MISSING = {"", "-", "\u2013", "\u2014", "n/a", "na", "nan", "none", "null", "?"}
 
 
-class TableExtractorError(ValueError):
-    """Invalid input to the table tools (empty text, missing chunk_id, unknown column)."""
-
 
 def _clean_cell(cell: str) -> str:
     """Strip whitespace, Markdown bold/italic markers, <br> tags and escaped pipes."""
