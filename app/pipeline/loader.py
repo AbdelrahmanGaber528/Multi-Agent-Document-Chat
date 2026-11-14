@@ -46,7 +46,7 @@ def validate_file(file_path: str) -> Path:
     if size > MAX_FILE_SIZE:
         raise FileTooLargeError(
             "File exceeds the maximum allowed size.",
-            details={"size_bytes": size, "max_size_bytes": max_size},
+            details={"size_bytes": size, "max_size_bytes": MAX_FILE_SIZE},
         )
 
     return path
