@@ -68,7 +68,7 @@ def list_resources():
             if doc_id not in resources:
                 resources[doc_id] = {
                     "doc_id": doc_id,
-                    "filename": metadata.get("filename"),
+                    "filename": metadata.get("doc_name") or metadata.get("filename"),
                     "chunks": 0,
                 }
 

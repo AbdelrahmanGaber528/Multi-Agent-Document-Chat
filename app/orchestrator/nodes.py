@@ -72,7 +72,7 @@ class OrchestratorNodes:
     def analyst_node(self, state: OrchestratorState) -> dict[str, Any]:
         """Run deterministic + LLM analysis over all accumulated evidence."""
         bundle = _build_cumulative_bundle(state)
-        analysis = run_analyst(bundle, self.analyst_llm)
+        analysis = run_analyst(bundle, self.analyst_llm, attempted_queries=state["attempted_queries"])
         return {"analysis": analysis}
 
     def answer_node(self, state: OrchestratorState) -> dict[str, Any]:

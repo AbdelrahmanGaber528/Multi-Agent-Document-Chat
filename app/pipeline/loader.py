@@ -171,10 +171,10 @@ def load_docx(path: Path, doc_id: str) -> list[Document]:
 
 
 ## Main loading method
-def load_document(file_path: str | Path) -> list[Document]:
+def load_document(file_path: str | Path, doc_id: str | None = None) -> list[Document]:
     
     path = validate_file(file_path)
-    doc_id = str(uuid4())
+    doc_id = doc_id or str(uuid4())
 
     loaders = {
         ".pdf": load_pdf,

@@ -96,9 +96,11 @@ class VectorDatabase:
             )
 
         except Exception as exc:
+            import traceback
+            traceback.print_exc()
+
             raise VectorStoreError(
-                "Failed to initialize ChromaDB.",
-                details={"reason": str(exc)},
+                f"Failed to initialize ChromaDB: {exc}"
             ) from exc
 
 

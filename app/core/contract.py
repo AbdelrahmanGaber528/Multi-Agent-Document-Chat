@@ -198,3 +198,21 @@ class FinalAnswer(BaseModel):
         description="What could not be found, shown to the user when insufficient_evidence is True",
     )
     rounds_used: int = Field(default=1, ge=1)
+
+# ── HTTP API models ──────────────────────────────────────────────────
+class ChatRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: str = Field(..., min_length=1)
+    session_id: Optional[str] = None
+    history: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ChatResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str
+    citations: list[Citation] = Field(default_factory=list)
+    insufficient_evidence: bool = False
+    missing_info: list[str] = Field(default_factory=list)
+    rounds_used: int = Field(default=1, ge=1)

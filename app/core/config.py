@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://openrouter.ai/api/v1"
     llm_model: str = "openrouter/free"
     llm_temperature: float = 0.0
-    llm_api_key : str = None
+    llm_api_key: Optional[str] = None
     llm_timeout_s: int = Field(default=60, ge=1)
     llm_max_retries: int = Field(default=3, ge=0) 
 
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     embedding_provider: str = "sentence-transformers"
     embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2" 
     embedding_batch_size: int = Field(default=64, ge=1)
-    embedding_api_key: str = None
+    embedding_api_key: str | None = None
 
     # ── Chunking 
     chunk_size_tokens: int = Field(default=500, ge=100, le=1000)

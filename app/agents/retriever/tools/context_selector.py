@@ -1,6 +1,6 @@
 import json
 from langchain_core.tools import StructuredTool
-from app.core.config import get_setting
+from app.core.config import get_settings
 
 settings = get_settings()
 

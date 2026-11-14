@@ -1,148 +1,89 @@
 import logging
-from uuid import uuid4
+import tempfile
 from pathlib import Path
-from langchain_core.documents import Document
+from uuid import uuid4
 
 from app.core.config import get_settings
+from app.core.contract import IngestResult
 from app.core.errors import (
-    IngestionError,
-    EmptyDocumentError,
-    UnsupportedFileError,
-    VectorStoreError,
+    IngestionError, EmptyDocumentError, UnsupportedFileError,
+    FileTooLargeError, VectorStoreError,
 )
 from app.pipeline.vector_db import VectorDatabase
-
 from app.pipeline.loader import load_document
 from app.pipeline.parser import parse_documents
 from app.pipeline.cleaner import clean_documents
 from app.pipeline.chunker import chunk_documents
 
-
 log = logging.getLogger(__name__)
-
 settings = get_settings()
 
-
-def ingest_file(filename: str, file_bytes: bytes) -> dict:
-    """
-    Ingest an uploaded file into the vector database.
-
-    Workflow:
-        File bytes
-        -> Loader
-        -> Parser
-        -> Cleaner
-        -> Chunker
-        -> VectorDatabase
-    """
-
-    if not filename:
+def ingest_file(filename: str, file_bytes: bytes) -> IngestResult:
+    """Ingest uploaded bytes through loader -> parser -> cleaner -> chunker -> Chroma."""
+    if not filename or not filename.strip():
         raise IngestionError("Filename cannot be empty.")
-
     if not file_bytes:
         raise EmptyDocumentError("Uploaded file is empty.")
-
-    extension = Path(filename).suffix.lower()
-
+    safe_name = Path(filename).name
+    extension = Path(safe_name).suffix.lower()
     if extension not in settings.allowed_extensions:
-        raise UnsupportedFileError(
-            f"Unsupported file extension: {extension}"
-        )
-
+        raise UnsupportedFileError(f"Unsupported file extension: {extension}")
     if len(file_bytes) > settings.max_upload_bytes:
-        raise IngestionError(
-            f"File exceeds the {settings.max_upload_mb} MB limit."
+        raise FileTooLargeError(
+            f"File exceeds the {settings.max_upload_mb} MB limit.",
+            details={"size_bytes": len(file_bytes), "max_size_bytes": settings.max_upload_bytes},
         )
 
     doc_id = str(uuid4())
-
+    temp_path = None
     try:
-        log.info("Starting ingestion: %s", filename)
+        settings.ensure_dirs()
+        # The existing loader consumes filesystem paths; materialize the upload temporarily.
+        with tempfile.NamedTemporaryFile(
+            mode="wb", suffix=extension, prefix=f"{doc_id}_",
+            dir=settings.upload_dir, delete=False
+        ) as temp_file:
+            temp_file.write(file_bytes)
+            temp_path = Path(temp_file.name)
 
-        # 1. Load file
-        documents = load_file(
-            filename=filename,
-            file_bytes=file_bytes,
-        )
-
-        if not documents:
-            raise EmptyDocumentError(
-                "Loader returned no documents."
-            )
-
-        # 2. Parse documents
+        documents = load_document(temp_path, doc_id=doc_id)
         documents = parse_documents(documents)
-
-        # 3. Clean documents
         documents = clean_documents(documents)
-
         if not documents:
-            raise EmptyDocumentError(
-                "No content remaining after cleaning."
-            )
+            raise EmptyDocumentError("No content remaining after cleaning.")
 
-        # 4. Attach source metadata
         for document in documents:
             document.metadata.update({
                 "doc_id": doc_id,
-                "filename": filename,
-                "source": filename,
+                "doc_name": safe_name,
+                "filename": safe_name,
+                "source": safe_name,
             })
 
-        # 5. Split documents into chunks
         chunks = chunk_documents(documents)
-
         if not chunks:
-            raise EmptyDocumentError(
-                "Chunking produced no chunks."
-            )
+            raise EmptyDocumentError("Chunking produced no chunks.")
 
-        # 6. Add stable chunk metadata
         for index, chunk in enumerate(chunks):
             chunk.metadata.update({
                 "doc_id": doc_id,
-                "filename": filename,
+                "doc_name": safe_name,
+                "filename": safe_name,
                 "chunk_index": index,
             })
+            chunk.metadata.setdefault("chunk_id", f"{doc_id}_{index}")
 
-            if not chunk.metadata.get("chunk_id"):
-                chunk.metadata["chunk_id"] = (
-                    f"{doc_id}_{index}"
-                )
-
-        # 7. Store chunks in ChromaDB
-        vector_db = VectorDatabase(
-            embedding_model=settings.embedding_model,
-        )
-
-        inserted_ids = vector_db.add_documents(chunks)
-
-        log.info(
-            "Ingestion completed: %s, chunks=%d",
-            filename,
-            len(inserted_ids),
-        )
-
-        return {
-            "status": "success",
-            "doc_id": doc_id,
-            "filename": filename,
-            "total_chunks": len(inserted_ids),
-            "chunk_ids": inserted_ids,
-        }
-
-    except (
-        EmptyDocumentError,
-        UnsupportedFileError,
-        IngestionError,
-        VectorStoreError,
-    ):
+        db = VectorDatabase(embedding_model=settings.embedding_model)
+        inserted_ids = db.add_documents(chunks)
+        log.info("Ingestion completed: %s, chunks=%d", safe_name, len(inserted_ids))
+        return IngestResult(doc_id=doc_id, num_chunks=len(inserted_ids))
+    except (EmptyDocumentError, UnsupportedFileError, FileTooLargeError, IngestionError, VectorStoreError):
         raise
-
     except Exception as exc:
-        log.exception("Ingestion failed for %s", filename)
-
+        log.exception("Ingestion failed for %s", safe_name)
         raise IngestionError(
-            f"Failed to ingest {filename}.",
-            details={"reason": str(exc)},
+            f"Failed to ingest {safe_name}.", details={"reason": str(exc)}
         ) from exc
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
