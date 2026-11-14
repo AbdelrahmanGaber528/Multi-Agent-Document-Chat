@@ -8,6 +8,7 @@ settings = get_settings()
 TOP_K = settings.top_k_reranked
 
 def _lexical_score(query: str, content: str) -> float:
+    
     query_terms = set(re.findall(r"\w+", query.lower()))
     content_terms = re.findall(r"\w+", content.lower())
 
