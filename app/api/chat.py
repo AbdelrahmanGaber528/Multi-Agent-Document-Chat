@@ -1,77 +1,59 @@
 import logging
 from functools import lru_cache
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
 
-from app.core.config import get_settings
-from app.agents.retriever import RetrieverAgent
-from app.pipeline.vector_db import VectorDatabase
+from app.core.contract import ChatRequest, ChatResponse
 
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-settings = get_settings()
-
 
 @lru_cache(maxsize=1)
-def _components():
-    """Initialize reusable chat components."""
+def get_workflow():
+    from app.orchestrator.graph import build_graph
 
-    from langchain_openai import ChatOpenAI
-
-    llm = ChatOpenAI(
-        model=settings.llm_model,
-        api_key=settings.llm_api_key,
-        base_url=settings.llm_base_url,
-        temperature=settings.llm_temperature,
-        timeout=settings.llm_timeout_s,
-        max_retries=settings.llm_max_retries,
-    )
-
-    vector_db = VectorDatabase(
-        embedding_model=settings.embedding_model,
-    )
-
-    retriever = RetrieverAgent(
-        llm=llm,
-        vector_db=vector_db,
-    )
-
-    return retriever
+    return build_graph()
 
 
-def _run_chat(question: str):
-    retriever = _components()
-
-    retrieval_result = retriever.invoke(question)
-
-    return {
-        "question": question,
-        "retrieval": retrieval_result,
-    }
-
-
-@router.post("")
-async def chat(body: dict):
-    """Retrieve document evidence for a chat question."""
-
-    question = body.get("question", "").strip()
-
-    if not question:
-        raise ValueError("Question cannot be blank.")
-
+def _run_chat(body: ChatRequest) -> ChatResponse:
     try:
-        result = await run_in_threadpool(
-            _run_chat,
-            question,
+        workflow = get_workflow()
+
+        initial_state = {
+            "question": body.question.strip(),
+            "session_id": body.session_id,
+        }
+
+        result = workflow.invoke(initial_state)
+
+        return ChatResponse(
+            answer=result["answer"],
+            sources=result.get("sources", []),
         )
 
-        return result
-
     except Exception as exc:
-        log.exception("Chat request failed")
-        raise RuntimeError(
-            f"Chat processing failed: {exc}"
+        log.exception("Chat execution failed")
+        raise HTTPException(
+            status_code=500,
+            detail="Chat processing failed.",
         ) from exc
+
+
+@router.post("", response_model=ChatResponse)
+async def chat(body: ChatRequest):
+    question = body.question.strip()
+
+    if not question:
+        raise HTTPException(
+            status_code=400,
+            detail="Question cannot be blank.",
+        )
+
+    request = body.model_copy(
+        update={"question": question}
+    )
+
+    return await run_in_threadpool(_run_chat, request)
