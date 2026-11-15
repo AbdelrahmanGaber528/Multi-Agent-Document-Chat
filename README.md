@@ -65,14 +65,32 @@ Multi-Agent-Document-Chat/
 
 ### Running the App
 
-#### Option 1: Streamlit Interactive Web App (Recommended)
-Launch the Streamlit user interface with document upload, multi-agent chat, live execution trace, vector database inspection, and tool playground:
+#### Option 1: Docker Compose (All-in-One, Recommended)
+Run both the Streamlit UI and the FastAPI backend in containerized environments with persistent Chroma vector storage and cached embedding models:
+```bash
+docker compose up --build
+```
+* **Streamlit UI**: Access at `http://localhost:8501`
+* **FastAPI Backend & Docs**: Access at `http://localhost:8000/docs`
+
+To run only the Streamlit UI:
+```bash
+docker compose up --build streamlit
+```
+
+To run only the FastAPI backend:
+```bash
+docker compose up --build api
+```
+
+#### Option 2: Local Streamlit Interactive Web App
+Launch the Streamlit user interface locally without Docker:
 ```bash
 streamlit run streamlit_app.py
 ```
 
-#### Option 2: FastAPI Backend Server
-Run the REST API server:
+#### Option 3: Local FastAPI Backend Server
+Run the REST API server locally:
 ```bash
 uvicorn app.main:app --reload
 ```

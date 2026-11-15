@@ -1,0 +1,9 @@
+# Atlas Cloud Systems — Enterprise Security & Data Governance Policy
+**Document ID:** POL-SEC-2026  
+**Effective Date:** January 15, 2026  
+
+## 1. Data Encryption & Residency
+All customer data at rest is encrypted using AES-256-GCM, and all data in transit uses TLS 1.3. European enterprise customers may pin storage exclusively to the Frankfurt (eu-central-1) data center to comply with GDPR requirements.
+
+## 2. Retention & Incident Response
+Audit logs are retained for 365 days by default and up to 7 years for Financial Tier customers. Critical security incidents (Severity 1) require customer notification within 4 hours of confirmation.

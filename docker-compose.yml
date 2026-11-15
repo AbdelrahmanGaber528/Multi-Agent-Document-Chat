@@ -1,24 +1,37 @@
 services:
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
     env_file:
       - .env
     volumes:
       - ./data:/app/data
-      # Chroma (
       - vector_db:/app/data/vector_db
-      # Keeps the downloaded embedding model, so it is not fetched again after a rebuild
       - hf_cache:/root/.cache/huggingface
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 180s  # first start downloads the embedding model
+      start_period: 180s
     restart: unless-stopped
 
 volumes:

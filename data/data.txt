@@ -1,0 +1,17 @@
+# Atlas Cloud Systems — Q3 2026 Financial & Operational Report
+**Document ID:** FIN-2026-Q3  
+**Reporting Period:** July 1, 2026 – September 30, 2026  
+
+## 1. Executive Summary
+In Q3 2026, Atlas Cloud Systems generated total revenue of $48.6 million, up from $41.2 million in Q2 2026. Operating expenses were $31.4 million, resulting in an operating income of $17.2 million. Customer churn dropped to 1.8%, down from 2.4% in Q2 2026.
+
+## 2. Regional Revenue Breakdown
+| Region | Q1 2026 Revenue ($M) | Q2 2026 Revenue ($M) | Q3 2026 Revenue ($M) | Active Enterprise Accounts |
+| :--- | :---: | :---: | :---: | :---: |
+| North America | 18.4 | 21.0 | 24.8 | 310 |
+| Europe | 10.2 | 11.5 | 13.4 | 185 |
+| Asia-Pacific | 5.8 | 6.4 | 7.9 | 120 |
+| Latin America | 1.9 | 2.3 | 2.5 | 45 |
+
+## 3. Infrastructure & SLA Performance
+Atlas maintained an average platform uptime of 99.97% across all production regions during Q3 2026. Mean API response latency was 118 ms, and total engineering headcount reached 240 full-time employees at quarter close.
