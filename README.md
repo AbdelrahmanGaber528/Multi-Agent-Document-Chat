@@ -64,7 +64,16 @@ Multi-Agent-Document-Chat/
 3. Set up your environment variables (API keys, DB connection strings) in a `.env` file.
 
 ### Running the App
-Run the main FastAPI server:
+
+#### Option 1: Streamlit Interactive Web App (Recommended)
+Launch the Streamlit user interface with document upload, multi-agent chat, live execution trace, vector database inspection, and tool playground:
+```bash
+streamlit run streamlit_app.py
+```
+
+#### Option 2: FastAPI Backend Server
+Run the REST API server:
 ```bash
 uvicorn app.main:app --reload
 ```
+API Documentation will be available at `http://localhost:8000/docs`.
