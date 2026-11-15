@@ -101,7 +101,7 @@ def api_chat(
 ) -> dict[str, Any]:
     payload = {"question": question, "history": history}
     # Multi-round retrieval + tool loops can take up to ~60-90s
-    resp = httpx.post(f"{base_url}/chat", json=payload, timeout=120.0)
+    resp = httpx.post(f"{base_url}/chat", json=payload, timeout=300.0)
     if resp.status_code != 200:
         raise RuntimeError(_extract_error(resp))
     return resp.json()
