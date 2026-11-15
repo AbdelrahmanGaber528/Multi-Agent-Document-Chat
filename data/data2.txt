@@ -1,0 +1,17 @@
+# Beacon Data Corp — Q3 2026 Performance & Benchmark Summary
+**Document ID:** COMP-2026-Q3  
+**Reporting Period:** July 1, 2026 – September 30, 2026  
+
+## 1. Financial & Customer Overview
+Beacon Data Corp reported Q3 2026 total revenue of $52.0 million with operating expenses of $36.5 million. Enterprise customer count stood at 590 accounts globally, with a quarterly churn rate of 2.1%.
+
+## 2. Service Reliability & Engineering Metrics
+Beacon recorded an average platform uptime of 99.92% in Q3 2026, with a mean API response latency of 145 ms. Total engineering headcount was 295 full-time employees.
+
+## 3. AI Model Inference Benchmark (Internal Evaluation)
+| Model Variant | Parameters (B) | Throughput (tokens/sec) | Latency p95 (ms) | MMLU Accuracy (%) |
+| :--- | :---: | :---: | :---: | :---: |
+| Beacon-Lite | 8 | 142.0 | 85 | 71.4 |
+| Beacon-Core | 32 | 78.5 | 160 | 79.8 |
+| Beacon-Pro | 70 | 41.2 | 290 | 84.6 |
+| Beacon-Ultra | 120 | 22.0 | 470 | 86.9 |

@@ -2,9 +2,14 @@ from pathlib import Path
 from uuid import uuid4
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyMuPDFLoader, TextLoader
-from docx import Document as DocxDocument
-from docx.text.paragraph import Paragraph
-from docx.table import Table
+try:
+    from docx import Document as DocxDocument
+    from docx.text.paragraph import Paragraph
+    from docx.table import Table
+except ImportError:
+    DocxDocument = None
+    Paragraph = None
+    Table = None
 
 from app.core.errors import (
     UnsupportedFileError,
@@ -108,6 +113,12 @@ def load_txt(path: Path, doc_id: str) -> list[Document]:
 
 
 def load_docx(path: Path, doc_id: str) -> list[Document]:
+
+    if DocxDocument is None:
+        raise ParsingError(
+            "python-docx is not installed.",
+            details={"filename": path.name, "reason": "Missing optional dependency 'python-docx'"},
+        )
 
     try:
         document = DocxDocument(str(path))

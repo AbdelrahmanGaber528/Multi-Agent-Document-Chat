@@ -64,7 +64,34 @@ Multi-Agent-Document-Chat/
 3. Set up your environment variables (API keys, DB connection strings) in a `.env` file.
 
 ### Running the App
-Run the main FastAPI server:
+
+#### Option 1: Docker Compose (All-in-One, Recommended)
+Run both the Streamlit UI and the FastAPI backend in containerized environments with persistent Chroma vector storage and cached embedding models:
+```bash
+docker compose up --build
+```
+* **Streamlit UI**: Access at `http://localhost:8501`
+* **FastAPI Backend & Docs**: Access at `http://localhost:8000/docs`
+
+To run only the Streamlit UI:
+```bash
+docker compose up --build streamlit
+```
+
+To run only the FastAPI backend:
+```bash
+docker compose up --build api
+```
+
+#### Option 2: Local Streamlit Interactive Web App
+Launch the Streamlit user interface locally without Docker:
+```bash
+streamlit run streamlit_app.py
+```
+
+#### Option 3: Local FastAPI Backend Server
+Run the REST API server locally:
 ```bash
 uvicorn app.main:app --reload
 ```
+API Documentation will be available at `http://localhost:8000/docs`.

@@ -1,0 +1,10 @@
+VortexDB Cloud — Technical Architecture & Pricing Overview
+
+1. Storage & Replication Engine
+VortexDB is a cloud-native operational database powered by a Log-Structured Merge-tree (LSM) storage engine. High availability and leader election are managed via the Raft consensus protocol.
+
+2. Security & Reliability Benchmarks
+VortexDB enforces AES-256 encryption at rest by default across all storage nodes. The platform provides a guaranteed SLA uptime of 99.95% for multi-region deployments.
+
+3. Commercial Licensing
+The VortexDB Cloud production tier starts at a monthly base price of $620.

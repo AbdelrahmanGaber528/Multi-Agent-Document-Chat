@@ -78,7 +78,7 @@ def _dedupe(items: list[str]) -> list[str]:
 
 
 def _dedupe_ci(items: list[str]) -> list[str]:
-    """Deduplicate strings case-insensitively while preserving first-seen casing."""
+    """Deduplicate strings case-insensitively"""
     seen: dict[str, str] = {}
     for item in items:
         cleaned = item.strip()
