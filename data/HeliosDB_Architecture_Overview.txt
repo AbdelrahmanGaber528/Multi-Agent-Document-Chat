@@ -1,0 +1,10 @@
+HeliosDB Enterprise — Technical Architecture & Pricing Overview
+
+1. Storage & Replication Engine
+HeliosDB is a distributed transactional database built on a Log-Structured Merge-tree (LSM) storage engine. For cluster coordination and fault tolerance, HeliosDB uses the Raft consensus protocol across availability zones.
+
+2. Security & Reliability Benchmarks
+All customer volumes in HeliosDB are encrypted at rest using AES-256. In production benchmarks, HeliosDB guarantees an SLA uptime of 99.99% and achieves a cold-start failover recovery time of 18 seconds.
+
+3. Commercial Licensing
+The HeliosDB Enterprise starter cluster is priced at a monthly base price of $450.
