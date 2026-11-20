@@ -4,7 +4,9 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    HF_HOME=/root/.cache/huggingface
+    HF_HOME=/root/.cache/huggingface \
+    WHISPER_MODEL=base.en \
+    MAX_AUDIO_UPLOAD_MB=10
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
