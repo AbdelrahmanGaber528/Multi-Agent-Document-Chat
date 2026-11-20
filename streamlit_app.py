@@ -1,4 +1,5 @@
 import os
+import json
 from typing import Any
 
 import httpx
@@ -105,6 +106,33 @@ def api_chat(
     if resp.status_code != 200:
         raise RuntimeError(_extract_error(resp))
     return resp.json()
+
+
+def api_voice_chat(
+    base_url: str,
+    audio: bytes,
+    history: list[dict[str, str]],
+) -> dict[str, Any]:
+    files = {"audio": ("recording.wav", audio, "audio/wav")}
+    data = {"history": json.dumps(history)}
+    resp = httpx.post(
+        f"{base_url}/chat/voice", files=files, data=data, timeout=300.0
+    )
+    if resp.status_code != 200:
+        raise RuntimeError(_extract_error(resp))
+    return resp.json()
+
+
+def submit_chat_response(user_query: str, response_data: dict[str, Any]) -> None:
+    meta = {
+        "citations": response_data.get("citations", []),
+        "insufficient_evidence": response_data.get("insufficient_evidence", False),
+        "missing_info": response_data.get("missing_info", []),
+        "rounds_used": response_data.get("rounds_used", 1),
+    }
+    st.session_state.messages.append(
+        {"role": "assistant", "content": response_data.get("answer", ""), "meta": meta}
+    )
 
 
 # ── UI Rendering Helpers ──────────────────────────────────────────────────────
@@ -265,16 +293,45 @@ user_query = st.chat_input(
     disabled=not backend_online,
 )
 
+voice_recording = st.audio_input(
+    "Record an English question",
+    sample_rate=16000,
+    disabled=not backend_online,
+)
+send_voice = st.button(
+    "Send voice question",
+    disabled=not backend_online or voice_recording is None,
+)
+
+if send_voice and voice_recording is not None:
+    history_payload = [
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state.messages
+    ]
+    with st.spinner("Transcribing your recording and preparing an answer..."):
+        try:
+            voice_response = api_voice_chat(
+                api_url, voice_recording.getvalue(), history_payload
+            )
+            transcript = voice_response.get("transcript", "").strip()
+            if transcript:
+                st.caption(f"Recognized: {transcript}")
+                st.session_state.messages.append({"role": "user", "content": transcript})
+                submit_chat_response(transcript, voice_response)
+                st.rerun()
+            else:
+                st.error("No speech was recognized. Please try another recording.")
+        except Exception as exc:
+            st.error(f"Voice query failed: {exc}")
+
 if user_query:
+    history_payload = [
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state.messages
+    ]
     st.session_state.messages.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(user_query)
-
-    history_payload = [
-        {"role": m["role"], "content": m["content"]}
-        for m in st.session_state.messages[:-1]
-    ]
-
     with st.chat_message("assistant"):
         with st.spinner("Running multi-agent retrieval, analysis, and verification..."):
             try:
@@ -284,24 +341,16 @@ if user_query:
                 response_data = None
 
         if response_data:
-            answer_text = response_data.get("answer", "")
-            st.markdown(answer_text)
-
-            meta = {
-                "citations": response_data.get("citations", []),
-                "insufficient_evidence": response_data.get("insufficient_evidence", False),
-                "missing_info": response_data.get("missing_info", []),
-                "rounds_used": response_data.get("rounds_used", 1),
-            }
-            render_assistant_metadata(meta)
-
-            st.session_state.messages.append(
+            st.markdown(response_data.get("answer", ""))
+            render_assistant_metadata(
                 {
-                    "role": "assistant",
-                    "content": answer_text,
-                    "meta": meta,
+                    "citations": response_data.get("citations", []),
+                    "insufficient_evidence": response_data.get("insufficient_evidence", False),
+                    "missing_info": response_data.get("missing_info", []),
+                    "rounds_used": response_data.get("rounds_used", 1),
                 }
             )
+            submit_chat_response(user_query, response_data)
 
 if st.session_state.messages:
     if st.button("🧹 Clear Chat History"):
