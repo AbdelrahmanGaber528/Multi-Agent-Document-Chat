@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # ── Upload limits
     allowed_extensions: tuple[str, ...] = (".pdf", ".docx", ".txt")
     max_upload_mb: int = 50
+    max_audio_upload_mb: int = Field(default=10, ge=1)
 
     
     # ── LLM
@@ -40,6 +41,9 @@ class Settings(BaseSettings):
     llm_api_key: Optional[str] = None
     llm_timeout_s: int = Field(default=60, ge=1)
     llm_max_retries: int = Field(default=3, ge=0) 
+
+    # Local English speech transcription
+    whisper_model: str = "base.en"
 
     # ── Embeddings
     embedding_provider: str = "sentence-transformers"
@@ -104,6 +108,10 @@ class Settings(BaseSettings):
     @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_mb * 1024 * 1024
+
+    @property
+    def max_audio_upload_bytes(self) -> int:
+        return self.max_audio_upload_mb * 1024 * 1024
 
     def ensure_dirs(self) -> None:
         """Create data folders. Call once at startup (main.py)."""

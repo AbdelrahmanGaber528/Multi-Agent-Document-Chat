@@ -9,10 +9,11 @@ from langchain_openai import ChatOpenAI
 from app.core.config import get_settings
 from app.core.errors import AppError, ConfigurationError
 from app.core.logging import setup_logging
-from app.api import chat, sources
+from app.api import chat, sources, voice
 from app.agents.retriever.agent import RetrieverAgent
 from app.orchestrator.graph import build_graph
 from app.pipeline.vector_db import VectorDatabase
+from app.services.transcription import Transcriber
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ async def lifespan(app: FastAPI):
         analyst_llm=llm,
         answer_llm=llm,
     )
+    app.state.transcriber = Transcriber(settings.whisper_model)
     logger.info("LLM, vector database, retriever, and workflow initialized")
     try:
         yield
@@ -55,6 +57,7 @@ settings = get_settings()
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 app.include_router(chat.router)
+app.include_router(voice.router)
 app.include_router(sources.router)
 
 
