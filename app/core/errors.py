@@ -163,3 +163,17 @@ class ResponseFormatterError(AnswerError, ValueError):
  
     status_code = 422
     code = "response_formatter_error"
+
+
+# ── Report Generator (agents/report/) ─────────────────────────────────
+class ReportError(AppError):
+    """Parent of every error raised by the Report Generator Agent."""
+
+    status_code = 500
+    code = "report_error"
+
+
+class ReportRenderError(ReportError):
+    """ReportLab failed to build or save the PDF report."""
+
+    code = "report_render_error"
