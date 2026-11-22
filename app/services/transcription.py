@@ -16,9 +16,9 @@ class TranscriptionError(Exception):
 
 
 class Transcriber:
-    """Lazily load and reuse a CPU English Whisper model."""
+    """Lazily load and reuse a CPU multilingual Whisper model."""
 
-    def __init__(self, model_name: str = "base.en") -> None:
+    def __init__(self, model_name: str = "base") -> None:
         self.model_name = model_name
         self._model: WhisperModel | None = None
         self._model_lock = Lock()
@@ -33,12 +33,15 @@ class Transcriber:
                     )
         return self._model
 
-    def transcribe(self, audio_bytes: bytes) -> str:
+    def transcribe(self, audio_bytes: bytes, language: str | None = None) -> str:
         if not audio_bytes:
             raise TranscriptionError("Audio recording is empty.")
         try:
+            options = {"beam_size": 5, "vad_filter": True}
+            if language is not None:
+                options["language"] = language
             segments, _info = self._get_model().transcribe(
-                BytesIO(audio_bytes), language="en", beam_size=5, vad_filter=True
+                BytesIO(audio_bytes), **options
             )
             transcript = " ".join(segment.text.strip() for segment in segments).strip()
         except Exception as exc:
