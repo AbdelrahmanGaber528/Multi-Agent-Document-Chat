@@ -18,6 +18,7 @@ from app.core.errors import (
     EmptyDocumentError,
 )
 from app.core.config import get_settings
+from app.pipeline.ocr import extract_image_text
 
 settings = get_settings()
 
@@ -181,6 +182,22 @@ def load_docx(path: Path, doc_id: str) -> list[Document]:
 
 
 
+def load_image(path: Path, doc_id: str) -> list[Document]:
+    """OCR an uploaded image and expose its text as a normal document page."""
+    text = extract_image_text(path)
+    return [
+        Document(
+            page_content=text,
+            metadata={
+                "doc_id": doc_id,
+                "doc_name": path.name,
+                "file_type": "image",
+                "page": 1,
+            },
+        )
+    ]
+
+
 ## Main loading method
 def load_document(file_path: str | Path, doc_id: str | None = None) -> list[Document]:
     
@@ -191,6 +208,12 @@ def load_document(file_path: str | Path, doc_id: str | None = None) -> list[Docu
         ".pdf": load_pdf,
         ".docx": load_docx,
         ".txt": load_txt,
+        ".png": load_image,
+        ".jpg": load_image,
+        ".jpeg": load_image,
+        ".webp": load_image,
+        ".tif": load_image,
+        ".tiff": load_image,
     }
 
     documents = loaders[path.suffix.lower()](path, doc_id)
