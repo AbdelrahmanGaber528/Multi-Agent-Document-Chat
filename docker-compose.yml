@@ -25,6 +25,7 @@ services:
     environment:
       WHISPER_MODEL: ${WHISPER_MODEL:-base.en}
       MAX_AUDIO_UPLOAD_MB: ${MAX_AUDIO_UPLOAD_MB:-10}
+      OCR_MODEL_DIR: /app/data/rapidocr_models
     volumes:
       - ./data:/app/data
       - vector_db:/app/data/vector_db

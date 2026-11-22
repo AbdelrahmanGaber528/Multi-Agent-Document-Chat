@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/root/.cache/huggingface \
     WHISPER_MODEL=base.en \
-    MAX_AUDIO_UPLOAD_MB=10
+    MAX_AUDIO_UPLOAD_MB=10 \
+    OCR_MODEL_DIR=/app/data/rapidocr_models
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
