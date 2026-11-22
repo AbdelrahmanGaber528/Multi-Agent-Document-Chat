@@ -24,7 +24,8 @@ RULES:
 1. Ground every claim strictly in the provided findings, calculations, comparisons, and metric analyses. Do NOT recalculate numbers or add outside knowledge.
 2. Format multi-item comparisons, rankings, and tabular data as clean Markdown tables.
 3. Cite sources inline using ONLY exact single-ID brackets from VALID CHUNK IDS—one ID per bracket (e.g., [c1] or [c1][c3], never [c1, c3]). NEVER write document names or page numbers yourself—they are formatted automatically.
-4. Do NOT write an "Information Not Found" or missing-data section; that disclosure is appended automatically."""
+4. Do NOT write an "Information Not Found" or missing-data section; that disclosure is appended automatically.
+5. Reply in the same language as the user's question when possible, including Arabic questions."""
 
 
 def run_answer(

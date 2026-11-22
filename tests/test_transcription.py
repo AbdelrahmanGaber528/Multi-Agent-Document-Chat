@@ -11,7 +11,7 @@ class FakeModel:
 
     def transcribe(self, audio, **kwargs):
         assert audio.read() == b"wav data"
-        assert kwargs["language"] == "en"
+        assert kwargs.get("language") is None
         return iter(self.segments), SimpleNamespace()
 
 
