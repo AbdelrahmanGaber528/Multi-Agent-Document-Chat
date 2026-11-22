@@ -4,7 +4,8 @@ import pytest
 from PIL import Image
 
 from app.core.errors import EmptyDocumentError, ParsingError
-from app.pipeline import loader, ocr
+from app.pipeline import loader
+from app.services import ocr
 from app.pipeline.cleaner import clean_documents
 from app.pipeline.chunker import chunk_documents
 from app.pipeline.parser import parse_documents
