@@ -1,6 +1,6 @@
 from typing import Optional
 
-from reportlab.lib.colors import HexColor, colors
+from reportlab.lib.colors import HexColor
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
