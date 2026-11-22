@@ -25,12 +25,24 @@ def _transcribe(transcriber: Transcriber, audio: bytes) -> str:
     return transcriber.transcribe(audio)
 
 
+def _transcribe_with_language(
+    transcriber: Transcriber, audio: bytes, language: str
+) -> str:
+    return transcriber.transcribe(audio, language=language)
+
+
 @router.post("/voice", response_model=VoiceChatResponse)
 async def voice_chat(
     request: Request,
     audio: UploadFile = File(...),
     history: str = Form("[]"),
+    language: str = Form("auto"),
 ) -> VoiceChatResponse:
+    if language not in {"auto", "en", "ar"}:
+        raise HTTPException(
+            status_code=422,
+            detail="Language must be 'auto', 'en' (English), or 'ar' (Arabic).",
+        )
     if audio.content_type not in {"audio/wav", "audio/x-wav", "audio/wave"}:
         raise HTTPException(status_code=415, detail="Audio must be a WAV recording.")
 
@@ -56,7 +68,12 @@ async def voice_chat(
         request.app.state.transcriber = transcriber
 
     try:
-        transcript = await run_in_threadpool(_transcribe, transcriber, content)
+        if language == "auto":
+            transcript = await run_in_threadpool(_transcribe, transcriber, content)
+        else:
+            transcript = await run_in_threadpool(
+                _transcribe_with_language, transcriber, content, language
+            )
     except TranscriptionError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

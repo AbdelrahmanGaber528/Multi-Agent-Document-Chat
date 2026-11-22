@@ -45,8 +45,8 @@ class Settings(BaseSettings):
     llm_timeout_s: int = Field(default=60, ge=1)
     llm_max_retries: int = Field(default=3, ge=0) 
 
-    # Local English speech transcription
-    whisper_model: str = "base.en"
+    # Local multilingual speech transcription (English and Arabic)
+    whisper_model: str = "base"
 
     # ── Embeddings
     embedding_provider: str = "sentence-transformers"

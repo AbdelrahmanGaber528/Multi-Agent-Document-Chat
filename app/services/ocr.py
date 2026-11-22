@@ -23,16 +23,16 @@ def _get_engine():
         with _engine_lock:
             if _engine is None:
                 try:
-                    from rapidocr import RapidOCR
+                    from rapidocr import LangRec, ModelType, OCRVersion, RapidOCR
 
                     settings = get_settings()
                     settings.ocr_model_dir.mkdir(parents=True, exist_ok=True)
                     _engine = RapidOCR(
                         params={
                             "Global.model_root_dir": str(settings.ocr_model_dir),
-                            "Rec.ocr_version": "PP-OCRv5",
-                            "Rec.lang_type": "arabic",
-                            "Rec.model_type": "mobile",
+                            "Rec.ocr_version": getattr(OCRVersion, "PPOCRV5", "PP-OCRv5"),
+                            "Rec.lang_type": getattr(LangRec, "ARABIC", "arabic"),
+                            "Rec.model_type": getattr(ModelType, "MOBILE", "mobile"),
                         }
                     )
                 except Exception as exc:

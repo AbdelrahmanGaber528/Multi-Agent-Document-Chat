@@ -112,9 +112,10 @@ def api_voice_chat(
     base_url: str,
     audio: bytes,
     history: list[dict[str, str]],
+    language: str = "auto",
 ) -> dict[str, Any]:
     files = {"audio": ("recording.wav", audio, "audio/wav")}
-    data = {"history": json.dumps(history)}
+    data = {"history": json.dumps(history), "language": language}
     resp = httpx.post(
         f"{base_url}/chat/voice", files=files, data=data, timeout=300.0
     )
@@ -361,10 +362,21 @@ user_query = st.chat_input(
 )
 
 voice_recording = st.audio_input(
-    "Record an English question",
+    "Record an English or Arabic question",
     sample_rate=16000,
     disabled=not backend_online,
 )
+voice_language = st.selectbox(
+    "Voice language",
+    options=("Auto-detect", "English", "Arabic (العربية)"),
+    help="Choose a language for more reliable recognition, or let the app detect it.",
+    disabled=not backend_online,
+)
+voice_language_code = {
+    "Auto-detect": "auto",
+    "English": "en",
+    "Arabic (العربية)": "ar",
+}[voice_language]
 send_voice = st.button(
     "Send voice question",
     disabled=not backend_online or voice_recording is None,
@@ -378,7 +390,10 @@ if send_voice and voice_recording is not None:
     with st.spinner("Transcribing your recording and preparing an answer..."):
         try:
             voice_response = api_voice_chat(
-                api_url, voice_recording.getvalue(), history_payload
+                api_url,
+                voice_recording.getvalue(),
+                history_payload,
+                voice_language_code,
             )
             transcript = voice_response.get("transcript", "").strip()
             if transcript:
