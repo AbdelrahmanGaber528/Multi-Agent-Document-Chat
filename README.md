@@ -14,7 +14,8 @@ Multi-Agent-Document-Chat/
 │   │   ├── errors.py            ← custom errors 
 │   │   └── logging.py           ← shared logger, useful for tracing graph rounds
 │   ├── pipeline/                ← Document Preparation Pipeline
-│   │   ├── loader.py            ← Handles file uploads (PDFs, Word, text)
+│   │   ├── loader.py            ← Handles PDFs, Word, text, and OCR image uploads
+│   │   ├── ocr.py               ← Extracts Arabic and English image text with RapidOCR
 │   │   ├── parser.py            ← Extracts raw text from loaded files
 │   │   ├── cleaner.py           ← Cleans up the text before chunking
 │   │   ├── chunker.py           ← Breaks text into smaller, readable chunks
@@ -72,6 +73,12 @@ docker compose up --build
 ```
 * **Streamlit UI**: Access at `http://localhost:8501`
 * **FastAPI Backend & Docs**: Access at `http://localhost:8000/docs`
+
+Voice questions can be recorded from the Streamlit chat. The API transcribes English audio locally with `faster-whisper` (`base.en`, CPU int8) and then sends the transcript through the same document chat workflow. The model is downloaded the first time a voice question is processed and cached in the container's Hugging Face cache volume. Audio is limited to 10 MB by default (`MAX_AUDIO_UPLOAD_MB`) and is not stored by the application.
+
+The voice endpoint is `POST /chat/voice` and accepts a WAV `audio` file plus optional `history` form data containing a JSON array of chat messages. Its response includes the recognized `transcript` and the normal chat answer and citation fields. Set `WHISPER_MODEL` to another faster-whisper English model if you want to trade CPU use and model size for recognition quality.
+
+The document uploader also accepts PNG, JPG/JPEG, WEBP, and TIFF images. RapidOCR runs locally on CPU with Arabic and English recognition; its model files are downloaded on first OCR use and cached under `data/rapidocr_models` (mounted as `/app/data` in Docker). Extracted text is indexed through the normal document pipeline and citations refer to the image filename and page 1. Scanned PDF pages are not OCR processed.
 
 To run only the Streamlit UI:
 ```bash

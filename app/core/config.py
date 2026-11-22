@@ -25,11 +25,15 @@ class Settings(BaseSettings):
     data_dir: Path = PROJECT_ROOT / "data"
     upload_dir: Path = PROJECT_ROOT / "data" / "uploads"
     vector_db_dir: Path = PROJECT_ROOT / "data" / "vector_db"
+    ocr_model_dir: Path = PROJECT_ROOT / "data" / "rapidocr_models"
 
 
     # ── Upload limits
-    allowed_extensions: tuple[str, ...] = (".pdf", ".docx", ".txt")
+    allowed_extensions: tuple[str, ...] = (
+        ".pdf", ".docx", ".txt", ".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff"
+    )
     max_upload_mb: int = 50
+    max_audio_upload_mb: int = Field(default=10, ge=1)
 
     
     # ── LLM
@@ -40,6 +44,9 @@ class Settings(BaseSettings):
     llm_api_key: Optional[str] = None
     llm_timeout_s: int = Field(default=60, ge=1)
     llm_max_retries: int = Field(default=3, ge=0) 
+
+    # Local English speech transcription
+    whisper_model: str = "base.en"
 
     # ── Embeddings
     embedding_provider: str = "sentence-transformers"
@@ -105,9 +112,13 @@ class Settings(BaseSettings):
     def max_upload_bytes(self) -> int:
         return self.max_upload_mb * 1024 * 1024
 
+    @property
+    def max_audio_upload_bytes(self) -> int:
+        return self.max_audio_upload_mb * 1024 * 1024
+
     def ensure_dirs(self) -> None:
         """Create data folders. Call once at startup (main.py)."""
-        for p in (self.data_dir, self.upload_dir, self.vector_db_dir):
+        for p in (self.data_dir, self.upload_dir, self.vector_db_dir, self.ocr_model_dir):
             p.mkdir(parents=True, exist_ok=True)
 
 
