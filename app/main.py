@@ -9,7 +9,7 @@ from langchain_openai import ChatOpenAI
 from app.core.config import get_settings
 from app.core.errors import AppError, ConfigurationError
 from app.core.logging import setup_logging
-from app.api import chat, sources, voice
+from app.api import chat, report, sources, voice
 from app.agents.retriever.agent import RetrieverAgent
 from app.orchestrator.graph import build_graph
 from app.pipeline.vector_db import VectorDatabase
@@ -59,6 +59,7 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(chat.router)
 app.include_router(voice.router)
 app.include_router(sources.router)
+app.include_router(report.router)
 
 
 app.add_middleware(

@@ -123,12 +123,22 @@ def api_voice_chat(
     return resp.json()
 
 
+def api_generate_report(base_url: str, payload: dict[str, Any]) -> dict[str, Any]:
+    resp = httpx.post(f"{base_url}/report/generate", json=payload, timeout=300.0)
+    if resp.status_code != 200:
+        raise RuntimeError(_extract_error(resp))
+    return resp.json()
+
+
 def submit_chat_response(user_query: str, response_data: dict[str, Any]) -> None:
     meta = {
         "citations": response_data.get("citations", []),
         "insufficient_evidence": response_data.get("insufficient_evidence", False),
         "missing_info": response_data.get("missing_info", []),
         "rounds_used": response_data.get("rounds_used", 1),
+        "answer_text": response_data.get("answer", ""),
+        "question_text": user_query,
+        "msg_id": len(st.session_state.messages),
     }
     st.session_state.messages.append(
         {"role": "assistant", "content": response_data.get("answer", ""), "meta": meta}
@@ -172,6 +182,63 @@ def render_assistant_metadata(meta: dict[str, Any]) -> None:
                     f"(<code>{chunk_id}</code>)</div>",
                     unsafe_allow_html=True,
                 )
+
+    # ── PDF Report Generation
+    answer_text = meta.get("answer_text", "")
+    question_text = meta.get("question_text", "Document Analysis")
+    if answer_text:
+        with st.expander("📄 Generate PDF Report", expanded=False):
+            st.caption("Customize and generate a professional PDF report with the Report Generator Agent.")
+            rep_col1, rep_col2 = st.columns(2)
+            report_title = rep_col1.text_input("Report Title", value=f"Analysis: {question_text[:40]}...", key=f"title_{meta.get('msg_id', 0)}")
+            primary_color = rep_col2.color_picker("Brand Color", value="#1A237E", key=f"color_{meta.get('msg_id', 0)}")
+            
+            if st.button("🚀 Build PDF Report", key=f"btn_pdf_{meta.get('msg_id', 0)}"):
+                with st.spinner("Report Generator Agent is planning and compiling the PDF..."):
+                    try:
+                        payload = {
+                            "question": question_text,
+                            "answer": {
+                                "text": answer_text,
+                                "citations": citations,
+                                "insufficient_evidence": insufficient,
+                                "missing_info": missing_info,
+                                "rounds_used": rounds,
+                            },
+                            "analysis": {
+                                "question": question_text,
+                                "findings": [{"statement": answer_text[:200], "chunk_ids": [c.get("chunk_id", "") for c in citations if c.get("chunk_id")]}],
+                                "calculations": [],
+                                "tables": [],
+                                "comparisons": [],
+                                "metric_analyses": [],
+                                "missing_info": missing_info,
+                            },
+                            "style": {
+                                "title": report_title,
+                                "subtitle": "Enterprise Multi-Agent Document Intelligence Report",
+                                "primary_color": primary_color,
+                                "include_cover": True,
+                                "include_citations": True,
+                            },
+                        }
+                        result = api_generate_report(api_url, payload)
+                        report_id = result.get("report_id")
+                        if report_id:
+                            pdf_resp = httpx.get(f"{api_url}/report/{report_id}", timeout=60.0)
+                            if pdf_resp.status_code == 200:
+                                st.download_button(
+                                    label=f"⬇️ Download PDF ({result.get('num_pages', 1)} pages)",
+                                    data=pdf_resp.content,
+                                    file_name=f"Report_{report_id[:8]}.pdf",
+                                    mime="application/pdf",
+                                    key=f"dl_{report_id}",
+                                )
+                                st.success("Report generated successfully!")
+                            else:
+                                st.error("Failed to download compiled report.")
+                    except Exception as err:
+                        st.error(f"Report generation failed: {err}")
 
 
 # ── Sidebar: Backend Connection & Knowledge Base ──────────────────────────────

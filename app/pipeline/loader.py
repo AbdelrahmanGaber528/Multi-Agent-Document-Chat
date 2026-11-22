@@ -18,7 +18,7 @@ from app.core.errors import (
     EmptyDocumentError,
 )
 from app.core.config import get_settings
-from app.pipeline.ocr import extract_image_text
+from app.services.ocr import extract_image_text
 
 settings = get_settings()
 

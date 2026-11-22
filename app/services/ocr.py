@@ -1,4 +1,4 @@
-"""Local image text recognition with RapidOCR."""
+"""Local image text recognition with RapidOCR service."""
 
 from __future__ import annotations
 

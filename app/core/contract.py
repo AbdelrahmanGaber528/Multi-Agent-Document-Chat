@@ -216,3 +216,54 @@ class ChatResponse(BaseModel):
     insufficient_evidence: bool = False
     missing_info: list[str] = Field(default_factory=list)
     rounds_used: int = Field(default=1, ge=1)
+
+
+class ReportStyle(BaseModel):
+    """Full visual design specification for a generated report."""
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(default="Analysis Report")
+    subtitle: str = Field(default="")
+
+    # Typography
+    heading1_font: str = Field(default="Helvetica-Bold")
+    heading2_font: str = Field(default="Helvetica-Bold")
+    body_font: str = Field(default="Helvetica")
+    heading1_size: int = Field(default=20, ge=8, le=72)
+    heading2_size: int = Field(default=14, ge=8, le=72)
+    body_size: int = Field(default=11, ge=6, le=36)
+
+    # Colors (hex strings, e.g. "#1A237E")
+    primary_color: str = Field(default="#1A237E")
+    accent_color: str = Field(default="#0D47A1")
+    body_color: str = Field(default="#212121")
+    table_header_bg: str = Field(default="#E3F2FD")
+
+    # Layout
+    page_size: Literal["A4", "Letter"] = "A4"
+    left_margin_mm: float = Field(default=20.0, ge=5.0, le=50.0)
+    right_margin_mm: float = Field(default=20.0, ge=5.0, le=50.0)
+    top_margin_mm: float = Field(default=25.0, ge=5.0, le=60.0)
+    bottom_margin_mm: float = Field(default=25.0, ge=5.0, le=60.0)
+    line_spacing: float = Field(default=1.4, ge=1.0, le=3.0)
+    include_cover: bool = True
+    include_toc: bool = True
+    include_citations: bool = True
+
+
+class ReportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: str = Field(..., min_length=1)
+    answer: FinalAnswer
+    analysis: AnalysisResult
+    style: ReportStyle = Field(default_factory=ReportStyle)
+
+
+class ReportResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    report_id: str
+    filename: str
+    path: str
+    num_pages: int
