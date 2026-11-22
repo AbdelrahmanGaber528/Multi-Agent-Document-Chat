@@ -8,56 +8,36 @@ This project implements a sophisticated, 3-Agent Retrieval-Augmented Generation 
 ```text
 Multi-Agent-Document-Chat/
 ├── app/
-│   ├── core/
-│   │   ├── config.py            ← settings (max_rounds, top-k, models)
-│   │   ├── contract.py          ← EvidenceChunk, EvidenceBundle, IngestResult
-│   │   ├── errors.py            ← custom errors 
-│   │   └── logging.py           ← shared logger, useful for tracing graph rounds
-│   ├── pipeline/                ← Document Preparation Pipeline
-│   │   ├── loader.py            ← Handles PDFs, Word, text, and OCR image uploads
-│   │   ├── ocr.py               ← Extracts Arabic and English image text with RapidOCR
-│   │   ├── parser.py            ← Extracts raw text from loaded files
-│   │   ├── cleaner.py           ← Cleans up the text before chunking
-│   │   ├── chunker.py           ← Breaks text into smaller, readable chunks
-│   │   ├── embeddings.py        ← Converts chunks into searchable numerical data
-│   │   └── vector_db.py         ← Stores embeddings for fast/precise searching
 │   ├── agents/
-│   │   ├── retriever/           ← Searches Vector DB without answering the question itself
-│   │   │   ├── agent.py         ← Retriever agent execution logic
-│   │   │   └── tools/
-│   │   │       ├── query_rewriter.py    ← Transforms user question into a clearer query
-│   │   │       ├── semantic_search.py   ← Retrieves chunks based on meaning using embeddings
-│   │   │       ├── keyword_search.py    ← Retrieves documents via exact-term matching
-│   │   │       ├── metadata_filter.py   ← Filters by document name, page, author, date
-│   │   │       ├── reranker.py          ← Reorders initial results for relevance
-│   │   │       └── context_selector.py  ← Selects precise evidence chunks to limit context size
-│   │   ├── analyst/             ← Evaluates data, compares facts, performs heavy lifting
-│   │   │   ├── agent.py         ← Analyst agent execution logic
-│   │   │   └── tools/
-│   │   │       ├── calculator.py          ← Performs accurate numerical calculations
-│   │   │       ├── table_extractor.py     ← Extracts structured tables into rows/columns
-│   │   │       ├── document_comparison.py ← Compares info/methodologies across multiple sources
-│   │   │       └── data_analysis.py       ← Performs structured analysis on extracted data
-│   │   └── answer/              ← Crafts the final response once evidence is sufficient
-│   │       ├── agent.py         ← Answer agent execution logic
-│   │       └── tools/
-│   │           ├── citation_formatter.py  ← Attaches precise page and document citations
-│   │           ├── source_formatter.py    ← Formats the list of evidence sources
-│   │           └── response_formatter.py  ← Organizes insights into clear, readable text or tables
-│   ├── orchestrator/            ← Coordinates the 3-Agent Workflow
-│   │   ├── state.py             ← Tracks conversational state and evidence
-│   │   ├── nodes.py             ← Graph nodes defining agent transitions
-│   │   ├── evidence_assessment.py ← Evaluates if Analyst triggered the Feedback Loop for more evidence
-│   │   └── orchestrator.py      ← Main workflow coordinator
-│   ├── schemas/
-│   │   └── analysis.py          ← AnalysisResult, FinalAnswer, Citation
-│   └── main.py                  ← FastAPI entry point
-├── tests/                       ← Unit and End-to-End tests
-├── docker-compose.yml           ← Container orchestration (e.g., Vector DB, App)
-└── .gitignore
+│   │   ├── analyst/
+│   │   │   ├── agent.py
+│   │   │   └── tools/              # Calculator, data analysis, tables, comparisons
+│   │   ├── answer/
+│   │   │   ├── agent.py
+│   │   │   └── tools/              # Citations and response formatting
+│   │   ├── report/
+│   │   │   ├── agent.py
+│   │   │   └── tools/              # PDF document, layout, style, text, tables, cover
+│   │   └── retriever/
+│   │       ├── agent.py
+│   │       └── tools/              # Search, query rewriting, filtering, reranking
+│   ├── api/                        # Chat, voice, sources, and report endpoints
+│   ├── core/                       # Settings, contracts, errors, and logging
+│   ├── orchestrator/               # Graph workflow, nodes, and state
+│   ├── pipeline/                   # Loading, parsing, cleaning, chunking, ingestion, indexing
+│   ├── services/                   # OCR and multilingual speech transcription
+│   └── main.py                     # FastAPI application and service initialization
+├── data/                           # Runtime uploads, vector database, and model cache
+├── tests/                          # Unit and API tests
+├── .env.example                    # Example environment configuration
+├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+├── pytest.ini
+├── README.md
+├── requirements.txt
+└── streamlit_app.py                # Streamlit chat and document management UI
 ```
-
-
 
 ### Installation
 1. Clone the repository.
