@@ -1,0 +1,5 @@
+aws_region = "us-east-1"
+instance_type = "t3.large"
+key_name = "EC2_PAIR_NAME"
+repo_url = "https://github.com/AbdelrahmanGaber528/Multi-Agent-Document-Chat.git"
+allowed_cidr = "0.0.0.0/0"
