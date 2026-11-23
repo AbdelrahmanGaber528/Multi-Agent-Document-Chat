@@ -4,7 +4,10 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    HF_HOME=/root/.cache/huggingface
+    HF_HOME=/root/.cache/huggingface \
+    WHISPER_MODEL=base \
+    MAX_AUDIO_UPLOAD_MB=10 \
+    OCR_MODEL_DIR=/app/data/rapidocr_models
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
@@ -19,6 +22,6 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE 8000 8501
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

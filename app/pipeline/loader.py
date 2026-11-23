@@ -2,9 +2,14 @@ from pathlib import Path
 from uuid import uuid4
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyMuPDFLoader, TextLoader
-from docx import Document as DocxDocument
-from docx.text.paragraph import Paragraph
-from docx.table import Table
+try:
+    from docx import Document as DocxDocument
+    from docx.text.paragraph import Paragraph
+    from docx.table import Table
+except ImportError:
+    DocxDocument = None
+    Paragraph = None
+    Table = None
 
 from app.core.errors import (
     UnsupportedFileError,
@@ -13,6 +18,7 @@ from app.core.errors import (
     EmptyDocumentError,
 )
 from app.core.config import get_settings
+from app.services.ocr import extract_image_text
 
 settings = get_settings()
 
@@ -109,6 +115,12 @@ def load_txt(path: Path, doc_id: str) -> list[Document]:
 
 def load_docx(path: Path, doc_id: str) -> list[Document]:
 
+    if DocxDocument is None:
+        raise ParsingError(
+            "python-docx is not installed.",
+            details={"filename": path.name, "reason": "Missing optional dependency 'python-docx'"},
+        )
+
     try:
         document = DocxDocument(str(path))
         blocks = []
@@ -170,6 +182,22 @@ def load_docx(path: Path, doc_id: str) -> list[Document]:
 
 
 
+def load_image(path: Path, doc_id: str) -> list[Document]:
+    """OCR an uploaded image and expose its text as a normal document page."""
+    text = extract_image_text(path)
+    return [
+        Document(
+            page_content=text,
+            metadata={
+                "doc_id": doc_id,
+                "doc_name": path.name,
+                "file_type": "image",
+                "page": 1,
+            },
+        )
+    ]
+
+
 ## Main loading method
 def load_document(file_path: str | Path, doc_id: str | None = None) -> list[Document]:
     
@@ -180,6 +208,12 @@ def load_document(file_path: str | Path, doc_id: str | None = None) -> list[Docu
         ".pdf": load_pdf,
         ".docx": load_docx,
         ".txt": load_txt,
+        ".png": load_image,
+        ".jpg": load_image,
+        ".jpeg": load_image,
+        ".webp": load_image,
+        ".tif": load_image,
+        ".tiff": load_image,
     }
 
     documents = loaders[path.suffix.lower()](path, doc_id)

@@ -1,0 +1,7 @@
+Titan Power Storage — 2025 Operational & Engineering Report
+
+1. Facility Profile & Commercial Terms
+Titan Power Storage specializes in grid-scale battery installations. Its primary storage technology is Vanadium Redox Flow, with a deployed storage capacity of 510 MWh, a round-trip efficiency of 82.0%, and an annual maintenance cost of $2.9 million. In 2025, Titan Power generated $71.5 million in total revenue against $54.0 million in operating expenses.
+
+2. Regional Hub Reliability Note
+In the Western Division, Titan's regional dispatch hub achieved a standalone grid reliability score of 96.4.

@@ -223,3 +223,7 @@ __marimo__/
 chroma_db/
 *.sqlite3
 data/vectorstore/
+
+
+.idea
+data/

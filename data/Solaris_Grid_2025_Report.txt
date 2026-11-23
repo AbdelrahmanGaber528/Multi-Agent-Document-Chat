@@ -1,0 +1,27 @@
+Solaris Grid Systems — 2025 Operational & Engineering Report
+
+1. Facility Profile & Commercial Terms
+Solaris Grid Systems operates utility-scale energy storage facilities. Its primary storage technology is Lithium Iron Phosphate (LFP), with a deployed storage capacity of 420 MWh, a round-trip efficiency of 89.5%, and an annual maintenance cost of $3.4 million. In 2025, Solaris generated $64.0 million in total revenue against $46.8 million in operating expenses.
+
+2. Multi-Year Performance History (2021–2025)
+| Year | Revenue ($M) | Unplanned Downtime (hrs) |
+| :--- | :---: | :---: |
+| 2021 | 31.2 | 19.5 |
+| 2022 | 38.6 | 16.0 |
+| 2023 | 47.1 | 12.4 |
+| 2024 | 55.8 | 9.8 |
+| 2025 | 64.0 | 7.2 |
+
+3. Cluster Scaling Benchmark
+| GPU Nodes | Inference Throughput (req/sec) | p99 Latency (ms) |
+| :--- | :---: | :---: |
+| 2 | 110 | 42 |
+| 4 | 215 | 46 |
+| 8 | 430 | 53 |
+| 12 | 640 | 61 |
+| 16 | 855 | 70 |
+
+4. Prose Operational Notes (Non-Table Metrics)
+Across regional dispatch hubs, standalone grid reliability scores were recorded as follows: the North Hub achieved a reliability score of 94.2, while the South Hub recorded a reliability score of 91.8.
+Customer onboarding duration steadily improved over four consecutive years in narrative audits: 28 days in 2022, 22 days in 2023, 17 days in 2024, and 12 days in 2025.
+In workforce training evaluations across five field offices, technician training hours and first-contact resolution rates were paired as follows: Office A (10 hours, 72%), Office B (20 hours, 79%), Office C (30 hours, 85%), Office D (40 hours, 91%), and Office E (50 hours, 96%).

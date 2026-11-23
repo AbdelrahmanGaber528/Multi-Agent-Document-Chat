@@ -262,7 +262,7 @@ def run_analyst(
                 )
 
     # Final structured synthesis (guarded against malformed LLM output)
-    synthesizer = llm.with_structured_output(_AnalystSynthesis) # This function makes the llm output data in the given format to be compatible with the required output of the analyst agent
+    synthesizer = llm.with_structured_output(_AnalystSynthesis, method="function_calling") # This function makes the llm output data in the given format to be compatible with the required output of the analyst agent
     messages.append(
         HumanMessage(
             content=(
